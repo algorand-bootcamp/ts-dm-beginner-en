@@ -16,7 +16,7 @@ int 6
 *
 txn OnCompletion
 +
-switch *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *create_NoOp *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED
+switch *call_NoOp *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *create_NoOp *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED
 
 *NOT_IMPLEMENTED:
 	err
@@ -43,8 +43,113 @@ createApplication:
 	app_global_put
 	retsub
 
+// prepareDeposit(pay)void
+*abi_route_prepareDeposit:
+	// mbrTxn: pay
+	txn GroupIndex
+	int 1
+	-
+	dup
+	gtxns TypeEnum
+	int pay
+	==
+	assert
+
+	// execute prepareDeposit(pay)void
+	callsub prepareDeposit
+	int 1
+	return
+
+// prepareDeposit(mbrTxn: PayTxn): void
+prepareDeposit:
+	proto 1 0
+
+	// contracts/digital-marketplace.algo.ts:12
+	// assert(this.txn.sender === globals.creatorAddress)
+	txn Sender
+	global CreatorAddress
+	==
+	assert
+
+	// contracts/digital-marketplace.algo.ts:14
+	// verifyPayTxn(mbrTxn, {
+	//       receiver: this.app.address,
+	//       amount: globals.minBalance + globals.assetOptInMinBalance,
+	//       closeRemainderTo: globals.zeroAddress,
+	//       rekeyTo: globals.zeroAddress,
+	//     })
+	// verify receiver
+	frame_dig -1 // mbrTxn: PayTxn
+	gtxns Receiver
+	global CurrentApplicationAddress
+	==
+	assert
+
+	// verify amount
+	frame_dig -1 // mbrTxn: PayTxn
+	gtxns Amount
+	global MinBalance
+	global AssetOptInMinBalance
+	+
+	==
+	assert
+
+	// verify closeRemainderTo
+	frame_dig -1 // mbrTxn: PayTxn
+	gtxns CloseRemainderTo
+	global ZeroAddress
+	==
+	assert
+
+	// verify rekeyTo
+	frame_dig -1 // mbrTxn: PayTxn
+	gtxns RekeyTo
+	global ZeroAddress
+	==
+	assert
+
+	// contracts/digital-marketplace.algo.ts:21
+	// sendAssetTransfer({
+	//       xferAsset: this.assetId.value,
+	//       assetReceiver: this.app.address,
+	//       assetAmount: 0,
+	//     })
+	itxn_begin
+	int axfer
+	itxn_field TypeEnum
+
+	// contracts/digital-marketplace.algo.ts:22
+	// xferAsset: this.assetId.value
+	byte 0x61737365744964 // "assetId"
+	app_global_get
+	itxn_field XferAsset
+
+	// contracts/digital-marketplace.algo.ts:23
+	// assetReceiver: this.app.address
+	global CurrentApplicationAddress
+	itxn_field AssetReceiver
+
+	// contracts/digital-marketplace.algo.ts:24
+	// assetAmount: 0
+	int 0
+	itxn_field AssetAmount
+
+	// Fee field not set, defaulting to 0
+	int 0
+	itxn_field Fee
+
+	// Submit inner transaction
+	itxn_submit
+	retsub
+
 *create_NoOp:
 	method "createApplication(uint64)void"
 	txna ApplicationArgs 0
 	match *abi_route_createApplication
+	err
+
+*call_NoOp:
+	method "prepareDeposit(pay)void"
+	txna ApplicationArgs 0
+	match *abi_route_prepareDeposit
 	err

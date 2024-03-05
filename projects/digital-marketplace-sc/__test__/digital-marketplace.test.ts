@@ -1,8 +1,8 @@
 import { describe, test, expect, beforeAll, beforeEach } from '@jest/globals';
-import { makeAssetCreateTxnWithSuggestedParamsFromObject } from 'algosdk';
+import { makePaymentTxnWithSuggestedParamsFromObject, makeAssetCreateTxnWithSuggestedParamsFromObject } from 'algosdk';
 import { algorandFixture } from '@algorandfoundation/algokit-utils/testing';
 import * as algokit from '@algorandfoundation/algokit-utils';
-import { sendTransaction } from '@algorandfoundation/algokit-utils';
+import { algos, getOrCreateKmdWalletAccount, sendTransaction } from '@algorandfoundation/algokit-utils';
 import { DigitalMarketplaceClient } from '../contracts/clients/DigitalMarketplaceClient';
 
 const fixture = algorandFixture();
@@ -15,7 +15,12 @@ describe('DigitalMarketplace', () => {
 
   beforeAll(async () => {
     await fixture.beforeEach();
-    const { algod, testAccount } = fixture.context;
+    const { algod, kmd } = fixture.context;
+    const testAccount = await getOrCreateKmdWalletAccount(
+      { name: 'stableSellerAccount', fundWith: algos(10) },
+      algod,
+      kmd
+    );
 
     appClient = new DigitalMarketplaceClient(
       {
@@ -43,6 +48,23 @@ describe('DigitalMarketplace', () => {
     await appClient.create.createApplication({ assetId: assetCreate.confirmation!.assetIndex! });
   });
 
-  // test('sum', async () => {
-  // });
+  test('prepareDeposit', async () => {
+    const { algod, kmd } = fixture.context;
+    const testAccount = await getOrCreateKmdWalletAccount({ name: 'stableSellerAccount' }, algod, kmd);
+    const { appAddress } = await appClient.appClient.getAppReference();
+
+    const result = await appClient.prepareDeposit(
+      {
+        mbrTxn: makePaymentTxnWithSuggestedParamsFromObject({
+          from: testAccount.addr,
+          to: appAddress,
+          amount: algos(0.1 + 0.1).microAlgos,
+          suggestedParams: await algod.getTransactionParams().do(),
+        }),
+      },
+      { sendParams: { fee: algos(0.002) } }
+    );
+
+    expect(result.confirmation).toBeDefined();
+  });
 });

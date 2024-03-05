@@ -13,6 +13,18 @@
       "returns": {
         "type": "void"
       }
+    },
+    {
+      "name": "prepareDeposit",
+      "args": [
+        {
+          "name": "mbrTxn",
+          "type": "pay"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
     }
   ]
 }
