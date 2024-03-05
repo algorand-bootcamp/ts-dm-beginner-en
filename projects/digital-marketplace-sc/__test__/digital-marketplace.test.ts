@@ -1,6 +1,8 @@
 import { describe, test, expect, beforeAll, beforeEach } from '@jest/globals';
+import { makeAssetCreateTxnWithSuggestedParamsFromObject } from 'algosdk';
 import { algorandFixture } from '@algorandfoundation/algokit-utils/testing';
 import * as algokit from '@algorandfoundation/algokit-utils';
+import { sendTransaction } from '@algorandfoundation/algokit-utils';
 import { DigitalMarketplaceClient } from '../contracts/clients/DigitalMarketplaceClient';
 
 const fixture = algorandFixture();
@@ -24,20 +26,23 @@ describe('DigitalMarketplace', () => {
       algod
     );
 
-    await appClient.create.createApplication({});
+    const assetCreate = await sendTransaction(
+      {
+        transaction: makeAssetCreateTxnWithSuggestedParamsFromObject({
+          from: testAccount.addr,
+          total: 10,
+          decimals: 0,
+          defaultFrozen: false,
+          suggestedParams: await algod.getTransactionParams().do(),
+        }),
+        from: testAccount,
+      },
+      algod
+    );
+
+    await appClient.create.createApplication({ assetId: assetCreate.confirmation!.assetIndex! });
   });
 
-  test('sum', async () => {
-    const a = 13;
-    const b = 37;
-    const sum = await appClient.doMath({ a, b, operation: 'sum' });
-    expect(sum.return?.valueOf()).toBe(BigInt(a + b));
-  });
-
-  test('difference', async () => {
-    const a = 13;
-    const b = 37;
-    const diff = await appClient.doMath({ a, b, operation: 'difference' });
-    expect(diff.return?.valueOf()).toBe(BigInt(a >= b ? a - b : b - a));
-  });
+  // test('sum', async () => {
+  // });
 });
