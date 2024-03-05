@@ -4,8 +4,11 @@ import { Contract } from '@algorandfoundation/tealscript';
 class DigitalMarketplace extends Contract {
   assetId = GlobalStateKey<AssetID>();
 
+  deposited = GlobalStateKey<number>();
+
   createApplication(assetId: number) {
     this.assetId.value = AssetID.fromUint64(assetId);
+    this.deposited.value = 0;
   }
 
   // eslint-disable-next-line no-unused-vars
@@ -25,5 +28,16 @@ class DigitalMarketplace extends Contract {
       assetReceiver: this.app.address,
       assetAmount: 0,
     });
+  }
+
+  deposit(xfer: AssetTransferTxn) {
+    verifyAssetTransferTxn(xfer, {
+      xferAsset: this.assetId.value,
+      assetReceiver: this.app.address,
+      assetCloseTo: globals.zeroAddress,
+      rekeyTo: globals.zeroAddress,
+    });
+
+    this.deposited.value += xfer.assetAmount;
   }
 }

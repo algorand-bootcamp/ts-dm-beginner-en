@@ -29,6 +29,18 @@
       "returns": {
         "type": "void"
       }
+    },
+    {
+      "name": "deposit",
+      "args": [
+        {
+          "name": "xfer",
+          "type": "axfer"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
     }
   ]
 }

@@ -36,10 +36,16 @@ switch *call_NoOp *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEM
 createApplication:
 	proto 1 0
 
-	// contracts/digital-marketplace.algo.ts:8
+	// contracts/digital-marketplace.algo.ts:10
 	// this.assetId.value = AssetID.fromUint64(assetId)
 	byte 0x61737365744964 // "assetId"
 	frame_dig -1 // assetId: number
+	app_global_put
+
+	// contracts/digital-marketplace.algo.ts:11
+	// this.deposited.value = 0
+	byte 0x6465706f7369746564 // "deposited"
+	int 0
 	app_global_put
 	retsub
 
@@ -68,14 +74,14 @@ createApplication:
 prepareDeposit:
 	proto 2 0
 
-	// contracts/digital-marketplace.algo.ts:13
+	// contracts/digital-marketplace.algo.ts:16
 	// assert(this.txn.sender === globals.creatorAddress)
 	txn Sender
 	global CreatorAddress
 	==
 	assert
 
-	// contracts/digital-marketplace.algo.ts:14
+	// contracts/digital-marketplace.algo.ts:17
 	// assert(!this.app.address.isOptedInToAsset(this.assetId.value))
 	global CurrentApplicationAddress
 	byte 0x61737365744964 // "assetId"
@@ -86,7 +92,7 @@ prepareDeposit:
 	!
 	assert
 
-	// contracts/digital-marketplace.algo.ts:16
+	// contracts/digital-marketplace.algo.ts:19
 	// verifyPayTxn(mbrTxn, {
 	//       receiver: this.app.address,
 	//       amount: globals.minBalance + globals.assetOptInMinBalance,
@@ -123,7 +129,7 @@ prepareDeposit:
 	==
 	assert
 
-	// contracts/digital-marketplace.algo.ts:23
+	// contracts/digital-marketplace.algo.ts:26
 	// sendAssetTransfer({
 	//       xferAsset: this.assetId.value,
 	//       assetReceiver: this.app.address,
@@ -133,18 +139,18 @@ prepareDeposit:
 	int axfer
 	itxn_field TypeEnum
 
-	// contracts/digital-marketplace.algo.ts:24
+	// contracts/digital-marketplace.algo.ts:27
 	// xferAsset: this.assetId.value
 	byte 0x61737365744964 // "assetId"
 	app_global_get
 	itxn_field XferAsset
 
-	// contracts/digital-marketplace.algo.ts:25
+	// contracts/digital-marketplace.algo.ts:28
 	// assetReceiver: this.app.address
 	global CurrentApplicationAddress
 	itxn_field AssetReceiver
 
-	// contracts/digital-marketplace.algo.ts:26
+	// contracts/digital-marketplace.algo.ts:29
 	// assetAmount: 0
 	int 0
 	itxn_field AssetAmount
@@ -157,6 +163,75 @@ prepareDeposit:
 	itxn_submit
 	retsub
 
+// deposit(axfer)void
+*abi_route_deposit:
+	// xfer: axfer
+	txn GroupIndex
+	int 1
+	-
+	dup
+	gtxns TypeEnum
+	int axfer
+	==
+	assert
+
+	// execute deposit(axfer)void
+	callsub deposit
+	int 1
+	return
+
+// deposit(xfer: AssetTransferTxn): void
+deposit:
+	proto 1 0
+
+	// contracts/digital-marketplace.algo.ts:34
+	// verifyAssetTransferTxn(xfer, {
+	//       xferAsset: this.assetId.value,
+	//       assetReceiver: this.app.address,
+	//       assetCloseTo: globals.zeroAddress,
+	//       rekeyTo: globals.zeroAddress,
+	//     })
+	// verify xferAsset
+	frame_dig -1 // xfer: AssetTransferTxn
+	gtxns XferAsset
+	byte 0x61737365744964 // "assetId"
+	app_global_get
+	==
+	assert
+
+	// verify assetReceiver
+	frame_dig -1 // xfer: AssetTransferTxn
+	gtxns AssetReceiver
+	global CurrentApplicationAddress
+	==
+	assert
+
+	// verify assetCloseTo
+	frame_dig -1 // xfer: AssetTransferTxn
+	gtxns AssetCloseTo
+	global ZeroAddress
+	==
+	assert
+
+	// verify rekeyTo
+	frame_dig -1 // xfer: AssetTransferTxn
+	gtxns RekeyTo
+	global ZeroAddress
+	==
+	assert
+
+	// contracts/digital-marketplace.algo.ts:41
+	// this.deposited.value += xfer.assetAmount
+	byte 0x6465706f7369746564 // "deposited"
+	app_global_get
+	frame_dig -1 // xfer: AssetTransferTxn
+	gtxns AssetAmount
+	+
+	byte 0x6465706f7369746564 // "deposited"
+	swap
+	app_global_put
+	retsub
+
 *create_NoOp:
 	method "createApplication(uint64)void"
 	txna ApplicationArgs 0
@@ -165,6 +240,7 @@ prepareDeposit:
 
 *call_NoOp:
 	method "prepareDeposit(pay,uint64)void"
+	method "deposit(axfer)void"
 	txna ApplicationArgs 0
-	match *abi_route_prepareDeposit
+	match *abi_route_prepareDeposit *abi_route_deposit
 	err
