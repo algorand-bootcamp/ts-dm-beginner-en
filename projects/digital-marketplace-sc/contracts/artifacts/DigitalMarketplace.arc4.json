@@ -41,6 +41,18 @@
       "returns": {
         "type": "void"
       }
+    },
+    {
+      "name": "setPrice",
+      "args": [
+        {
+          "name": "unitaryPrice",
+          "type": "uint64"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
     }
   ]
 }

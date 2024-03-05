@@ -6,9 +6,12 @@ class DigitalMarketplace extends Contract {
 
   deposited = GlobalStateKey<number>();
 
+  totalPrice = GlobalStateKey<number>();
+
   createApplication(assetId: number) {
     this.assetId.value = AssetID.fromUint64(assetId);
     this.deposited.value = 0;
+    this.totalPrice.value = 0;
   }
 
   // eslint-disable-next-line no-unused-vars
@@ -39,5 +42,11 @@ class DigitalMarketplace extends Contract {
     });
 
     this.deposited.value += xfer.assetAmount;
+  }
+
+  setPrice(totalPrice: number) {
+    assert(this.txn.sender === globals.creatorAddress);
+
+    this.totalPrice.value = totalPrice;
   }
 }

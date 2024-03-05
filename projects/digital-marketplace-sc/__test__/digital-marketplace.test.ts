@@ -56,9 +56,12 @@ describe('DigitalMarketplace', () => {
   });
 
   test('prepareDeposit', async () => {
-    const { algod, kmd } = fixture.context;
+    const { algod, kmd, indexer } = fixture.context;
     const testAccount = await getOrCreateKmdWalletAccount({ name: 'stableSellerAccount' }, algod, kmd);
     const { appAddress } = await appClient.appClient.getAppReference();
+
+    const beforeCallAssetInfo = await indexer.lookupAccountAssets(appAddress).do();
+    expect(beforeCallAssetInfo.assets.map((info: any) => info['asset-id'])).not.toContain(testAssetId);
 
     const result = await appClient.prepareDeposit(
       {
@@ -74,6 +77,9 @@ describe('DigitalMarketplace', () => {
     );
 
     expect(result.confirmation).toBeDefined();
+
+    const afterCallAssetInfo = await indexer.lookupAccountAssets(appAddress).do();
+    expect(afterCallAssetInfo.assets.map((info: any) => info['asset-id'])).toContain(testAssetId);
   });
 
   test('deposit', async () => {
@@ -89,6 +95,14 @@ describe('DigitalMarketplace', () => {
         amount: 3,
         suggestedParams: await algod.getTransactionParams().do(),
       }),
+    });
+
+    expect(result.confirmation).toBeDefined();
+  });
+
+  test('setPrice', async () => {
+    const result = await appClient.setPrice({
+      totalPrice: algos(7.6).microAlgos,
     });
 
     expect(result.confirmation).toBeDefined();
