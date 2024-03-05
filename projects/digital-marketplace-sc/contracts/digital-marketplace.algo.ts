@@ -8,8 +8,10 @@ class DigitalMarketplace extends Contract {
     this.assetId.value = AssetID.fromUint64(assetId);
   }
 
-  prepareDeposit(mbrTxn: PayTxn) {
+  // eslint-disable-next-line no-unused-vars
+  prepareDeposit(mbrTxn: PayTxn, assetId: AssetID) {
     assert(this.txn.sender === globals.creatorAddress);
+    assert(!this.app.address.isOptedInToAsset(this.assetId.value));
 
     verifyPayTxn(mbrTxn, {
       receiver: this.app.address,

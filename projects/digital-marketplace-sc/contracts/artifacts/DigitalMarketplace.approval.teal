@@ -43,8 +43,12 @@ createApplication:
 	app_global_put
 	retsub
 
-// prepareDeposit(pay)void
+// prepareDeposit(pay,uint64)void
 *abi_route_prepareDeposit:
+	// assetId: uint64
+	txna ApplicationArgs 1
+	btoi
+
 	// mbrTxn: pay
 	txn GroupIndex
 	int 1
@@ -55,16 +59,16 @@ createApplication:
 	==
 	assert
 
-	// execute prepareDeposit(pay)void
+	// execute prepareDeposit(pay,uint64)void
 	callsub prepareDeposit
 	int 1
 	return
 
-// prepareDeposit(mbrTxn: PayTxn): void
+// prepareDeposit(mbrTxn: PayTxn, assetId: AssetID): void
 prepareDeposit:
-	proto 1 0
+	proto 2 0
 
-	// contracts/digital-marketplace.algo.ts:12
+	// contracts/digital-marketplace.algo.ts:13
 	// assert(this.txn.sender === globals.creatorAddress)
 	txn Sender
 	global CreatorAddress
@@ -72,6 +76,17 @@ prepareDeposit:
 	assert
 
 	// contracts/digital-marketplace.algo.ts:14
+	// assert(!this.app.address.isOptedInToAsset(this.assetId.value))
+	global CurrentApplicationAddress
+	byte 0x61737365744964 // "assetId"
+	app_global_get
+	asset_holding_get AssetBalance
+	swap
+	pop
+	!
+	assert
+
+	// contracts/digital-marketplace.algo.ts:16
 	// verifyPayTxn(mbrTxn, {
 	//       receiver: this.app.address,
 	//       amount: globals.minBalance + globals.assetOptInMinBalance,
@@ -108,7 +123,7 @@ prepareDeposit:
 	==
 	assert
 
-	// contracts/digital-marketplace.algo.ts:21
+	// contracts/digital-marketplace.algo.ts:23
 	// sendAssetTransfer({
 	//       xferAsset: this.assetId.value,
 	//       assetReceiver: this.app.address,
@@ -118,18 +133,18 @@ prepareDeposit:
 	int axfer
 	itxn_field TypeEnum
 
-	// contracts/digital-marketplace.algo.ts:22
+	// contracts/digital-marketplace.algo.ts:24
 	// xferAsset: this.assetId.value
 	byte 0x61737365744964 // "assetId"
 	app_global_get
 	itxn_field XferAsset
 
-	// contracts/digital-marketplace.algo.ts:23
+	// contracts/digital-marketplace.algo.ts:25
 	// assetReceiver: this.app.address
 	global CurrentApplicationAddress
 	itxn_field AssetReceiver
 
-	// contracts/digital-marketplace.algo.ts:24
+	// contracts/digital-marketplace.algo.ts:26
 	// assetAmount: 0
 	int 0
 	itxn_field AssetAmount
@@ -149,7 +164,7 @@ prepareDeposit:
 	err
 
 *call_NoOp:
-	method "prepareDeposit(pay)void"
+	method "prepareDeposit(pay,uint64)void"
 	txna ApplicationArgs 0
 	match *abi_route_prepareDeposit
 	err

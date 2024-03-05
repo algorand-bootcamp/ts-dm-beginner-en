@@ -13,6 +13,8 @@ let appClient: DigitalMarketplaceClient;
 describe('DigitalMarketplace', () => {
   beforeEach(fixture.beforeEach);
 
+  let testAssetId: number | bigint;
+
   beforeAll(async () => {
     await fixture.beforeEach();
     const { algod, kmd } = fixture.context;
@@ -44,8 +46,9 @@ describe('DigitalMarketplace', () => {
       },
       algod
     );
+    testAssetId = assetCreate.confirmation!.assetIndex!;
 
-    await appClient.create.createApplication({ assetId: assetCreate.confirmation!.assetIndex! });
+    await appClient.create.createApplication({ assetId: testAssetId });
   });
 
   test('prepareDeposit', async () => {
@@ -61,6 +64,7 @@ describe('DigitalMarketplace', () => {
           amount: algos(0.1 + 0.1).microAlgos,
           suggestedParams: await algod.getTransactionParams().do(),
         }),
+        assetId: testAssetId,
       },
       { sendParams: { fee: algos(0.002) } }
     );
