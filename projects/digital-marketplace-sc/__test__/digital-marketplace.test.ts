@@ -172,4 +172,31 @@ describe('DigitalMarketplace', () => {
       })
     );
   });
+
+  test('withdraw', async () => {
+    const { algod, kmd } = fixture.context;
+    const testAccount = await getOrCreateKmdWalletAccount({ name: 'stableSellerAccount' }, algod, kmd);
+    const { appId } = await appClient.appClient.getAppReference();
+
+    const { amount: beforeCallAmount } = await algod.accountInformation(testAccount.addr).do();
+
+    const result = await appClient.delete.withdraw({}, { sendParams: { fee: algos(0.003) } });
+
+    expect(result.confirmation).toBeDefined();
+
+    const { amount: afterCallAmount } = await algod.accountInformation(testAccount.addr).do();
+    // After deleting the sell contract, the account gets ALGO for what they sold, contract mbr minus txn fees.
+    expect(afterCallAmount - beforeCallAmount).toEqual(algos(6.6 + 0.2 - 0.003).microAlgos);
+    await expect(algod.accountAssetInformation(testAccount.addr, Number(testAssetId)).do()).resolves.toEqual(
+      expect.objectContaining({
+        'asset-holding': {
+          amount: 8,
+          'asset-id': Number(testAssetId),
+          'is-frozen': false,
+        },
+      })
+    );
+
+    await expect(algod.getApplicationByID(Number(appId)).do()).rejects.toBeDefined();
+  });
 });

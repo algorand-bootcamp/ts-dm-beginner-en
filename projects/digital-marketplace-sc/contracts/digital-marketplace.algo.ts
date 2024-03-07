@@ -44,6 +44,24 @@ class DigitalMarketplace extends Contract {
     this.deposited.value += xfer.assetAmount;
   }
 
+  @allow.call('DeleteApplication')
+  withdraw() {
+    assert(this.txn.sender === globals.creatorAddress);
+
+    sendAssetTransfer({
+      xferAsset: this.assetId.value,
+      assetReceiver: globals.creatorAddress,
+      assetAmount: 0,
+      assetCloseTo: globals.creatorAddress,
+    });
+
+    sendPayment({
+      receiver: globals.creatorAddress,
+      amount: 0,
+      closeRemainderTo: globals.creatorAddress,
+    });
+  }
+
   setPrice(unitaryPrice: number) {
     assert(this.txn.sender === globals.creatorAddress);
 

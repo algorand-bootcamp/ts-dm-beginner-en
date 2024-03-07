@@ -43,6 +43,13 @@
       }
     },
     {
+      "name": "withdraw",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
       "name": "setPrice",
       "args": [
         {

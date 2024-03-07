@@ -16,7 +16,7 @@ int 6
 *
 txn OnCompletion
 +
-switch *call_NoOp *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *create_NoOp *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED
+switch *call_NoOp *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *call_DeleteApplication *create_NoOp *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED *NOT_IMPLEMENTED
 
 *NOT_IMPLEMENTED:
 	err
@@ -238,6 +238,96 @@ deposit:
 	app_global_put
 	retsub
 
+// withdraw()void
+*abi_route_withdraw:
+	// execute withdraw()void
+	callsub withdraw
+	int 1
+	return
+
+// withdraw(): void
+withdraw:
+	proto 0 0
+
+	// contracts/digital-marketplace.algo.ts:49
+	// assert(this.txn.sender === globals.creatorAddress)
+	txn Sender
+	global CreatorAddress
+	==
+	assert
+
+	// contracts/digital-marketplace.algo.ts:51
+	// sendAssetTransfer({
+	//       xferAsset: this.assetId.value,
+	//       assetReceiver: globals.creatorAddress,
+	//       assetAmount: 0,
+	//       assetCloseTo: globals.creatorAddress,
+	//     })
+	itxn_begin
+	int axfer
+	itxn_field TypeEnum
+
+	// contracts/digital-marketplace.algo.ts:52
+	// xferAsset: this.assetId.value
+	byte 0x61737365744964 // "assetId"
+	app_global_get
+	itxn_field XferAsset
+
+	// contracts/digital-marketplace.algo.ts:53
+	// assetReceiver: globals.creatorAddress
+	global CreatorAddress
+	itxn_field AssetReceiver
+
+	// contracts/digital-marketplace.algo.ts:54
+	// assetAmount: 0
+	int 0
+	itxn_field AssetAmount
+
+	// contracts/digital-marketplace.algo.ts:55
+	// assetCloseTo: globals.creatorAddress
+	global CreatorAddress
+	itxn_field AssetCloseTo
+
+	// Fee field not set, defaulting to 0
+	int 0
+	itxn_field Fee
+
+	// Submit inner transaction
+	itxn_submit
+
+	// contracts/digital-marketplace.algo.ts:58
+	// sendPayment({
+	//       receiver: globals.creatorAddress,
+	//       amount: 0,
+	//       closeRemainderTo: globals.creatorAddress,
+	//     })
+	itxn_begin
+	int pay
+	itxn_field TypeEnum
+
+	// contracts/digital-marketplace.algo.ts:59
+	// receiver: globals.creatorAddress
+	global CreatorAddress
+	itxn_field Receiver
+
+	// contracts/digital-marketplace.algo.ts:60
+	// amount: 0
+	int 0
+	itxn_field Amount
+
+	// contracts/digital-marketplace.algo.ts:61
+	// closeRemainderTo: globals.creatorAddress
+	global CreatorAddress
+	itxn_field CloseRemainderTo
+
+	// Fee field not set, defaulting to 0
+	int 0
+	itxn_field Fee
+
+	// Submit inner transaction
+	itxn_submit
+	retsub
+
 // setPrice(uint64)void
 *abi_route_setPrice:
 	// unitaryPrice: uint64
@@ -253,14 +343,14 @@ deposit:
 setPrice:
 	proto 1 0
 
-	// contracts/digital-marketplace.algo.ts:48
+	// contracts/digital-marketplace.algo.ts:66
 	// assert(this.txn.sender === globals.creatorAddress)
 	txn Sender
 	global CreatorAddress
 	==
 	assert
 
-	// contracts/digital-marketplace.algo.ts:50
+	// contracts/digital-marketplace.algo.ts:68
 	// this.unitaryPrice.value = unitaryPrice
 	byte 0x756e69746172795072696365 // "unitaryPrice"
 	frame_dig -1 // unitaryPrice: number
@@ -292,7 +382,7 @@ setPrice:
 buy:
 	proto 2 0
 
-	// contracts/digital-marketplace.algo.ts:54
+	// contracts/digital-marketplace.algo.ts:72
 	// verifyPayTxn(buyerTxn, {
 	//       sender: this.txn.sender,
 	//       receiver: this.app.address,
@@ -338,7 +428,7 @@ buy:
 	==
 	assert
 
-	// contracts/digital-marketplace.algo.ts:62
+	// contracts/digital-marketplace.algo.ts:80
 	// sendAssetTransfer({
 	//       xferAsset: this.assetId.value,
 	//       assetReceiver: this.txn.sender,
@@ -348,18 +438,18 @@ buy:
 	int axfer
 	itxn_field TypeEnum
 
-	// contracts/digital-marketplace.algo.ts:63
+	// contracts/digital-marketplace.algo.ts:81
 	// xferAsset: this.assetId.value
 	byte 0x61737365744964 // "assetId"
 	app_global_get
 	itxn_field XferAsset
 
-	// contracts/digital-marketplace.algo.ts:64
+	// contracts/digital-marketplace.algo.ts:82
 	// assetReceiver: this.txn.sender
 	txn Sender
 	itxn_field AssetReceiver
 
-	// contracts/digital-marketplace.algo.ts:65
+	// contracts/digital-marketplace.algo.ts:83
 	// assetAmount: quantity
 	frame_dig -2 // quantity: number
 	itxn_field AssetAmount
@@ -371,7 +461,7 @@ buy:
 	// Submit inner transaction
 	itxn_submit
 
-	// contracts/digital-marketplace.algo.ts:68
+	// contracts/digital-marketplace.algo.ts:86
 	// this.deposited.value -= quantity
 	byte 0x6465706f7369746564 // "deposited"
 	app_global_get
@@ -395,4 +485,10 @@ buy:
 	method "buy(pay,uint64)void"
 	txna ApplicationArgs 0
 	match *abi_route_prepareDeposit *abi_route_deposit *abi_route_setPrice *abi_route_buy
+	err
+
+*call_DeleteApplication:
+	method "withdraw()void"
+	txna ApplicationArgs 0
+	match *abi_route_withdraw
 	err
