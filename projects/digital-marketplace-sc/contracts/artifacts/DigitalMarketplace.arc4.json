@@ -46,7 +46,7 @@
       "name": "setPrice",
       "args": [
         {
-          "name": "totalPrice",
+          "name": "unitaryPrice",
           "type": "uint64"
         }
       ],
@@ -60,6 +60,10 @@
         {
           "name": "buyerTxn",
           "type": "pay"
+        },
+        {
+          "name": "quantity",
+          "type": "uint64"
         }
       ],
       "returns": {

@@ -77,13 +77,15 @@ describe('DigitalMarketplace', () => {
 
     expect(result.confirmation).toBeDefined();
 
-    await expect(algod.accountAssetInformation(appAddress, Number(testAssetId)).do()).resolves.toEqual(expect.objectContaining({
-      'asset-holding': {
-        'amount': 0,
-        'asset-id': Number(testAssetId),
-        'is-frozen': false,
-      }
-    }));
+    await expect(algod.accountAssetInformation(appAddress, Number(testAssetId)).do()).resolves.toEqual(
+      expect.objectContaining({
+        'asset-holding': {
+          amount: 0,
+          'asset-id': Number(testAssetId),
+          'is-frozen': false,
+        },
+      })
+    );
   });
 
   test('deposit', async () => {
@@ -103,18 +105,20 @@ describe('DigitalMarketplace', () => {
 
     expect(result.confirmation).toBeDefined();
 
-    await expect(algod.accountAssetInformation(appAddress, Number(testAssetId)).do()).resolves.toEqual(expect.objectContaining({
-      'asset-holding': {
-        'amount': 3,
-        'asset-id': Number(testAssetId),
-        'is-frozen': false,
-      }
-    }));
+    await expect(algod.accountAssetInformation(appAddress, Number(testAssetId)).do()).resolves.toEqual(
+      expect.objectContaining({
+        'asset-holding': {
+          amount: 3,
+          'asset-id': Number(testAssetId),
+          'is-frozen': false,
+        },
+      })
+    );
   });
 
   test('setPrice', async () => {
     const result = await appClient.setPrice({
-      totalPrice: algos(7.6).microAlgos,
+      unitaryPrice: algos(3.3).microAlgos,
     });
 
     expect(result.confirmation).toBeDefined();
@@ -143,9 +147,10 @@ describe('DigitalMarketplace', () => {
         buyerTxn: makePaymentTxnWithSuggestedParamsFromObject({
           from: testAccount.addr,
           to: appAddress,
-          amount: algos(7.6).microAlgos,
+          amount: algos(6.6).microAlgos,
           suggestedParams: await algod.getTransactionParams().do(),
         }),
+        quantity: 2,
       },
       {
         sender: testAccount,
@@ -157,12 +162,14 @@ describe('DigitalMarketplace', () => {
 
     expect(result.confirmation).toBeDefined();
 
-    await expect(algod.accountAssetInformation(testAccount.addr, Number(testAssetId)).do()).resolves.toEqual(expect.objectContaining({
-      'asset-holding': {
-        'amount': 3,
-        'asset-id': Number(testAssetId),
-        'is-frozen': false,
-      }
-    }));
+    await expect(algod.accountAssetInformation(testAccount.addr, Number(testAssetId)).do()).resolves.toEqual(
+      expect.objectContaining({
+        'asset-holding': {
+          amount: 2,
+          'asset-id': Number(testAssetId),
+          'is-frozen': false,
+        },
+      })
+    );
   });
 });

@@ -49,8 +49,8 @@ createApplication:
 	app_global_put
 
 	// contracts/digital-marketplace.algo.ts:14
-	// this.totalPrice.value = 0
-	byte 0x746f74616c5072696365 // "totalPrice"
+	// this.unitaryPrice.value = 0
+	byte 0x756e69746172795072696365 // "unitaryPrice"
 	int 0
 	app_global_put
 	retsub
@@ -240,7 +240,7 @@ deposit:
 
 // setPrice(uint64)void
 *abi_route_setPrice:
-	// totalPrice: uint64
+	// unitaryPrice: uint64
 	txna ApplicationArgs 1
 	btoi
 
@@ -249,7 +249,7 @@ deposit:
 	int 1
 	return
 
-// setPrice(totalPrice: number): void
+// setPrice(unitaryPrice: number): void
 setPrice:
 	proto 1 0
 
@@ -261,14 +261,18 @@ setPrice:
 	assert
 
 	// contracts/digital-marketplace.algo.ts:50
-	// this.totalPrice.value = totalPrice
-	byte 0x746f74616c5072696365 // "totalPrice"
-	frame_dig -1 // totalPrice: number
+	// this.unitaryPrice.value = unitaryPrice
+	byte 0x756e69746172795072696365 // "unitaryPrice"
+	frame_dig -1 // unitaryPrice: number
 	app_global_put
 	retsub
 
-// buy(pay)void
+// buy(pay,uint64)void
 *abi_route_buy:
+	// quantity: uint64
+	txna ApplicationArgs 1
+	btoi
+
 	// buyerTxn: pay
 	txn GroupIndex
 	int 1
@@ -279,20 +283,20 @@ setPrice:
 	==
 	assert
 
-	// execute buy(pay)void
+	// execute buy(pay,uint64)void
 	callsub buy
 	int 1
 	return
 
-// buy(buyerTxn: PayTxn): void
+// buy(buyerTxn: PayTxn, quantity: number): void
 buy:
-	proto 1 0
+	proto 2 0
 
 	// contracts/digital-marketplace.algo.ts:54
 	// verifyPayTxn(buyerTxn, {
 	//       sender: this.txn.sender,
 	//       receiver: this.app.address,
-	//       amount: this.totalPrice.value,
+	//       amount: this.unitaryPrice.value * quantity,
 	//       closeRemainderTo: globals.zeroAddress,
 	//       rekeyTo: globals.zeroAddress,
 	//     })
@@ -313,8 +317,10 @@ buy:
 	// verify amount
 	frame_dig -1 // buyerTxn: PayTxn
 	gtxns Amount
-	byte 0x746f74616c5072696365 // "totalPrice"
+	byte 0x756e69746172795072696365 // "unitaryPrice"
 	app_global_get
+	frame_dig -2 // quantity: number
+	*
 	==
 	assert
 
@@ -336,8 +342,7 @@ buy:
 	// sendAssetTransfer({
 	//       xferAsset: this.assetId.value,
 	//       assetReceiver: this.txn.sender,
-	//       assetAmount: 0,
-	//       assetCloseTo: this.txn.sender,
+	//       assetAmount: quantity,
 	//     })
 	itxn_begin
 	int axfer
@@ -355,14 +360,9 @@ buy:
 	itxn_field AssetReceiver
 
 	// contracts/digital-marketplace.algo.ts:65
-	// assetAmount: 0
-	int 0
+	// assetAmount: quantity
+	frame_dig -2 // quantity: number
 	itxn_field AssetAmount
-
-	// contracts/digital-marketplace.algo.ts:66
-	// assetCloseTo: this.txn.sender
-	txn Sender
-	itxn_field AssetCloseTo
 
 	// Fee field not set, defaulting to 0
 	int 0
@@ -370,6 +370,16 @@ buy:
 
 	// Submit inner transaction
 	itxn_submit
+
+	// contracts/digital-marketplace.algo.ts:68
+	// this.deposited.value -= quantity
+	byte 0x6465706f7369746564 // "deposited"
+	app_global_get
+	frame_dig -2 // quantity: number
+	-
+	byte 0x6465706f7369746564 // "deposited"
+	swap
+	app_global_put
 	retsub
 
 *create_NoOp:
@@ -382,7 +392,7 @@ buy:
 	method "prepareDeposit(pay,uint64)void"
 	method "deposit(axfer)void"
 	method "setPrice(uint64)void"
-	method "buy(pay)void"
+	method "buy(pay,uint64)void"
 	txna ApplicationArgs 0
 	match *abi_route_prepareDeposit *abi_route_deposit *abi_route_setPrice *abi_route_buy
 	err
