@@ -56,12 +56,11 @@ describe('DigitalMarketplace', () => {
   });
 
   test('prepareDeposit', async () => {
-    const { algod, kmd, indexer } = fixture.context;
+    const { algod, kmd } = fixture.context;
     const testAccount = await getOrCreateKmdWalletAccount({ name: 'stableSellerAccount' }, algod, kmd);
     const { appAddress } = await appClient.appClient.getAppReference();
 
-    const beforeCallAssetInfo = await indexer.lookupAccountAssets(appAddress).do();
-    expect(beforeCallAssetInfo.assets.map((info: any) => info['asset-id'])).not.toContain(testAssetId);
+    await expect(algod.accountAssetInformation(appAddress, Number(testAssetId)).do()).rejects.toBeDefined();
 
     const result = await appClient.prepareDeposit(
       {
@@ -78,8 +77,13 @@ describe('DigitalMarketplace', () => {
 
     expect(result.confirmation).toBeDefined();
 
-    const afterCallAssetInfo = await indexer.lookupAccountAssets(appAddress).do();
-    expect(afterCallAssetInfo.assets.map((info: any) => info['asset-id'])).toContain(testAssetId);
+    await expect(algod.accountAssetInformation(appAddress, Number(testAssetId)).do()).resolves.toEqual(expect.objectContaining({
+      'asset-holding': {
+        'amount': 0,
+        'asset-id': Number(testAssetId),
+        'is-frozen': false,
+      }
+    }));
   });
 
   test('deposit', async () => {
@@ -98,6 +102,14 @@ describe('DigitalMarketplace', () => {
     });
 
     expect(result.confirmation).toBeDefined();
+
+    await expect(algod.accountAssetInformation(appAddress, Number(testAssetId)).do()).resolves.toEqual(expect.objectContaining({
+      'asset-holding': {
+        'amount': 3,
+        'asset-id': Number(testAssetId),
+        'is-frozen': false,
+      }
+    }));
   });
 
   test('setPrice', async () => {
@@ -106,5 +118,51 @@ describe('DigitalMarketplace', () => {
     });
 
     expect(result.confirmation).toBeDefined();
+  });
+
+  test('buy', async () => {
+    const { testAccount, algod } = fixture.context;
+    const { appAddress } = await appClient.appClient.getAppReference();
+
+    await sendTransaction(
+      {
+        transaction: makeAssetTransferTxnWithSuggestedParamsFromObject({
+          assetIndex: Number(testAssetId),
+          from: testAccount.addr,
+          to: testAccount.addr,
+          amount: 0,
+          suggestedParams: await algod.getTransactionParams().do(),
+        }),
+        from: testAccount,
+      },
+      algod
+    );
+
+    const result = await appClient.buy(
+      {
+        buyerTxn: makePaymentTxnWithSuggestedParamsFromObject({
+          from: testAccount.addr,
+          to: appAddress,
+          amount: algos(7.6).microAlgos,
+          suggestedParams: await algod.getTransactionParams().do(),
+        }),
+      },
+      {
+        sender: testAccount,
+        sendParams: {
+          fee: algos(0.002),
+        },
+      }
+    );
+
+    expect(result.confirmation).toBeDefined();
+
+    await expect(algod.accountAssetInformation(testAccount.addr, Number(testAssetId)).do()).resolves.toEqual(expect.objectContaining({
+      'asset-holding': {
+        'amount': 3,
+        'asset-id': Number(testAssetId),
+        'is-frozen': false,
+      }
+    }));
   });
 });

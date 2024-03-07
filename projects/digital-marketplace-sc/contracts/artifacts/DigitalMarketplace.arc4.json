@@ -46,8 +46,20 @@
       "name": "setPrice",
       "args": [
         {
-          "name": "unitaryPrice",
+          "name": "totalPrice",
           "type": "uint64"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "buy",
+      "args": [
+        {
+          "name": "buyerTxn",
+          "type": "pay"
         }
       ],
       "returns": {

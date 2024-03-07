@@ -49,4 +49,23 @@ class DigitalMarketplace extends Contract {
 
     this.totalPrice.value = totalPrice;
   }
+
+  buy(buyerTxn: PayTxn) {
+    verifyPayTxn(buyerTxn, {
+      sender: this.txn.sender,
+      receiver: this.app.address,
+      amount: this.totalPrice.value,
+      closeRemainderTo: globals.zeroAddress,
+      rekeyTo: globals.zeroAddress,
+    });
+
+    sendAssetTransfer({
+      xferAsset: this.assetId.value,
+      assetReceiver: this.txn.sender,
+      assetAmount: 0,
+      assetCloseTo: this.txn.sender,
+    });
+
+    this.deposited.value = 0;
+  }
 }
