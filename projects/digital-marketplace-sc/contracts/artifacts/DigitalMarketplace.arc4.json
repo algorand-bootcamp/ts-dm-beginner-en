@@ -20,10 +20,6 @@
         {
           "name": "mbrTxn",
           "type": "pay"
-        },
-        {
-          "name": "assetId",
-          "type": "uint64"
         }
       ],
       "returns": {

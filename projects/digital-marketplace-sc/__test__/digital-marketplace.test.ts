@@ -70,7 +70,6 @@ describe('DigitalMarketplace', () => {
           amount: algos(0.1 + 0.1).microAlgos,
           suggestedParams: await algod.getTransactionParams().do(),
         }),
-        assetId: testAssetId,
       },
       { sendParams: { fee: algos(0.002) } }
     );

@@ -14,7 +14,7 @@ export class DigitalMarketplace extends Contract {
   }
 
   // eslint-disable-next-line no-unused-vars
-  prepareDeposit(mbrTxn: PayTxn, assetId: AssetID) {
+  prepareDeposit(mbrTxn: PayTxn) {
     assert(this.txn.sender === globals.creatorAddress);
     assert(!this.app.address.isOptedInToAsset(this.assetId.value));
 
