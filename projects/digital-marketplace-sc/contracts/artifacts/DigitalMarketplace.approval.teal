@@ -379,6 +379,14 @@ buy:
 	proto 2 0
 
 	// contracts/digital-marketplace.algo.ts:71
+	// assert(this.unitaryPrice.value !== 0)
+	byte 0x756e69746172795072696365 // "unitaryPrice"
+	app_global_get
+	int 0
+	!=
+	assert
+
+	// contracts/digital-marketplace.algo.ts:73
 	// verifyPayTxn(buyerTxn, {
 	//       sender: this.txn.sender,
 	//       receiver: this.app.address,
@@ -424,7 +432,7 @@ buy:
 	==
 	assert
 
-	// contracts/digital-marketplace.algo.ts:79
+	// contracts/digital-marketplace.algo.ts:81
 	// sendAssetTransfer({
 	//       xferAsset: this.assetId.value,
 	//       assetReceiver: this.txn.sender,
@@ -434,18 +442,18 @@ buy:
 	int axfer
 	itxn_field TypeEnum
 
-	// contracts/digital-marketplace.algo.ts:80
+	// contracts/digital-marketplace.algo.ts:82
 	// xferAsset: this.assetId.value
 	byte 0x61737365744964 // "assetId"
 	app_global_get
 	itxn_field XferAsset
 
-	// contracts/digital-marketplace.algo.ts:81
+	// contracts/digital-marketplace.algo.ts:83
 	// assetReceiver: this.txn.sender
 	txn Sender
 	itxn_field AssetReceiver
 
-	// contracts/digital-marketplace.algo.ts:82
+	// contracts/digital-marketplace.algo.ts:84
 	// assetAmount: quantity
 	frame_dig -2 // quantity: number
 	itxn_field AssetAmount
@@ -457,7 +465,7 @@ buy:
 	// Submit inner transaction
 	itxn_submit
 
-	// contracts/digital-marketplace.algo.ts:85
+	// contracts/digital-marketplace.algo.ts:87
 	// this.deposited.value -= quantity
 	byte 0x6465706f7369746564 // "deposited"
 	app_global_get

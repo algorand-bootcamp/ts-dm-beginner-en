@@ -68,6 +68,8 @@ export class DigitalMarketplace extends Contract {
   }
 
   buy(buyerTxn: PayTxn, quantity: number) {
+    assert(this.unitaryPrice.value !== 0);
+
     verifyPayTxn(buyerTxn, {
       sender: this.txn.sender,
       receiver: this.app.address,
