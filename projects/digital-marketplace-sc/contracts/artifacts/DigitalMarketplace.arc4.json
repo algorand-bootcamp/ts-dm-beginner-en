@@ -8,39 +8,12 @@
         {
           "name": "assetId",
           "type": "uint64"
-        }
-      ],
-      "returns": {
-        "type": "void"
-      }
-    },
-    {
-      "name": "prepareDeposit",
-      "args": [
+        },
         {
-          "name": "mbrTxn",
-          "type": "pay"
+          "name": "unitaryPrice",
+          "type": "uint64"
         }
       ],
-      "returns": {
-        "type": "void"
-      }
-    },
-    {
-      "name": "deposit",
-      "args": [
-        {
-          "name": "xfer",
-          "type": "axfer"
-        }
-      ],
-      "returns": {
-        "type": "void"
-      }
-    },
-    {
-      "name": "withdraw",
-      "args": [],
       "returns": {
         "type": "void"
       }
@@ -51,6 +24,18 @@
         {
           "name": "unitaryPrice",
           "type": "uint64"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "optInToAsset",
+      "args": [
+        {
+          "name": "mbrTxn",
+          "type": "pay"
         }
       ],
       "returns": {
@@ -69,6 +54,13 @@
           "type": "uint64"
         }
       ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "deleteApplication",
+      "args": [],
       "returns": {
         "type": "void"
       }

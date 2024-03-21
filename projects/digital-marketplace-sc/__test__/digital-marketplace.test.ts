@@ -52,17 +52,17 @@ describe('DigitalMarketplace', () => {
     );
     testAssetId = assetCreate.confirmation!.assetIndex!;
 
-    await appClient.create.createApplication({ assetId: testAssetId });
+    await appClient.create.createApplication({ assetId: testAssetId, unitaryPrice: 0 });
   });
 
-  test('prepareDeposit', async () => {
+  test('optInToAsset', async () => {
     const { algod, kmd } = fixture.context;
     const testAccount = await getOrCreateKmdWalletAccount({ name: 'stableSellerAccount' }, algod, kmd);
     const { appAddress } = await appClient.appClient.getAppReference();
 
     await expect(algod.accountAssetInformation(appAddress, Number(testAssetId)).do()).rejects.toBeDefined();
 
-    const result = await appClient.prepareDeposit(
+    const result = await appClient.optIntoAsset(
       {
         mbrTxn: makePaymentTxnWithSuggestedParamsFromObject({
           from: testAccount.addr,
@@ -92,15 +92,19 @@ describe('DigitalMarketplace', () => {
     const testAccount = await getOrCreateKmdWalletAccount({ name: 'stableSellerAccount' }, algod, kmd);
     const { appAddress } = await appClient.appClient.getAppReference();
 
-    const result = await appClient.deposit({
-      xfer: makeAssetTransferTxnWithSuggestedParamsFromObject({
-        assetIndex: Number(testAssetId),
-        from: testAccount.addr,
-        to: appAddress,
-        amount: 3,
-        suggestedParams: await algod.getTransactionParams().do(),
-      }),
-    });
+    const result = await algokit.sendTransaction(
+      {
+        transaction: makeAssetTransferTxnWithSuggestedParamsFromObject({
+          assetIndex: Number(testAssetId),
+          from: testAccount.addr,
+          to: appAddress,
+          amount: 3,
+          suggestedParams: await algod.getTransactionParams().do(),
+        }),
+        from: testAccount,
+      },
+      algod
+    );
 
     expect(result.confirmation).toBeDefined();
 
@@ -179,7 +183,7 @@ describe('DigitalMarketplace', () => {
 
     const { amount: beforeCallAmount } = await algod.accountInformation(testAccount.addr).do();
 
-    const result = await appClient.delete.withdraw({}, { sendParams: { fee: algos(0.003) } });
+    const result = await appClient.delete.deleteApplication({}, { sendParams: { fee: algos(0.003) } });
 
     expect(result.confirmation).toBeDefined();
 
