@@ -35,7 +35,6 @@ describe('DigitalMarketplace', () => {
     const assetCreate = await algorand.send.assetCreate({
       sender: testAccount.addr,
       total: 10n,
-      decimals: 0,
     });
 
     testAssetId = BigInt(assetCreate.confirmation.assetIndex!);
