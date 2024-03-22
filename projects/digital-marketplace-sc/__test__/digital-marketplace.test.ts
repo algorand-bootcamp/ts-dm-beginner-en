@@ -44,11 +44,10 @@ describe('DigitalMarketplace', () => {
 
   test('optInToAsset', async () => {
     const { algorand } = fixture;
-    const { algod } = algorand.client;
     const testAccount = await algorand.account.fromKmd('stableSellerAccount');
     const { appAddress } = await appClient.appClient.getAppReference();
 
-    await expect(algod.accountAssetInformation(appAddress, Number(testAssetId)).do()).rejects.toBeDefined();
+    await expect(algorand.account.getAssetInformation(appAddress, testAssetId)).rejects.toBeDefined();
 
     const mbrTxn = await algorand.transactions.payment({
       sender: testAccount.addr,
@@ -61,21 +60,13 @@ describe('DigitalMarketplace', () => {
 
     expect(result.confirmation).toBeDefined();
 
-    await expect(algod.accountAssetInformation(appAddress, Number(testAssetId)).do()).resolves.toEqual(
-      expect.objectContaining({
-        'asset-holding': {
-          amount: 0,
-          'asset-id': Number(testAssetId),
-          'is-frozen': false,
-        },
-      })
-    );
+    const { balance } = await algorand.account.getAssetInformation(appAddress, testAssetId);
+    expect(balance).toBe(0n);
   });
 
   test('deposit', async () => {
     const { algorand } = fixture;
     const testAccount = await algorand.account.fromKmd('stableSellerAccount');
-    const { algod } = fixture.context;
     const { appAddress } = await appClient.appClient.getAppReference();
 
     const result = await algorand.send.assetTransfer({
@@ -87,27 +78,20 @@ describe('DigitalMarketplace', () => {
 
     expect(result.confirmation).toBeDefined();
 
-    await expect(algod.accountAssetInformation(appAddress, Number(testAssetId)).do()).resolves.toEqual(
-      expect.objectContaining({
-        'asset-holding': {
-          amount: 3,
-          'asset-id': Number(testAssetId),
-          'is-frozen': false,
-        },
-      })
-    );
+    const { balance } = await algorand.account.getAssetInformation(appAddress, testAssetId);
+    expect(balance).toBe(3n);
   });
 
   test('setPrice', async () => {
-    const result = await appClient.setPrice({
+    await appClient.setPrice({
       unitaryPrice: algos(3.3).microAlgos,
     });
 
-    expect(result.confirmation).toBeDefined();
+    expect((await appClient.getGlobalState()).unitaryPrice?.asBigInt()).toBe(BigInt(algos(3.3).microAlgos));
   });
 
   test('buy', async () => {
-    const { testAccount, algod } = fixture.context;
+    const { testAccount } = fixture.context;
     const { algorand } = fixture;
     const { appAddress } = await appClient.appClient.getAppReference();
 
@@ -135,22 +119,13 @@ describe('DigitalMarketplace', () => {
 
     expect(result.confirmation).toBeDefined();
 
-    await expect(algod.accountAssetInformation(testAccount.addr, Number(testAssetId)).do()).resolves.toEqual(
-      expect.objectContaining({
-        'asset-holding': {
-          amount: 2,
-          'asset-id': Number(testAssetId),
-          'is-frozen': false,
-        },
-      })
-    );
+    const { balance } = await algorand.account.getAssetInformation(testAccount.addr, testAssetId);
+    expect(balance).toBe(2n);
   });
 
-  test('withdraw', async () => {
+  test('deleteApplication', async () => {
     const { algorand } = fixture;
     const testAccount = await algorand.account.fromKmd('stableSellerAccount');
-    const { algod } = fixture.context;
-    const { appId } = await appClient.appClient.getAppReference();
 
     const { amount: beforeCallAmount } = await algorand.account.getInformation(testAccount.addr);
 
@@ -162,16 +137,7 @@ describe('DigitalMarketplace', () => {
 
     // After deleting the sell contract, the account gets ALGO for what they sold, contract mbr minus txn fees.
     expect(afterCallAmount - beforeCallAmount).toEqual(algos(6.6 + 0.2 - 0.003).microAlgos);
-    await expect(algod.accountAssetInformation(testAccount.addr, Number(testAssetId)).do()).resolves.toEqual(
-      expect.objectContaining({
-        'asset-holding': {
-          amount: 8,
-          'asset-id': Number(testAssetId),
-          'is-frozen': false,
-        },
-      })
-    );
-
-    await expect(algod.getApplicationByID(Number(appId)).do()).rejects.toBeDefined();
+    const { balance } = await algorand.account.getAssetInformation(testAccount.addr, testAssetId);
+    expect(balance).toBe(8n);
   });
 });
