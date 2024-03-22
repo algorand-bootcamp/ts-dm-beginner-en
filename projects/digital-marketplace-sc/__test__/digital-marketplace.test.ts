@@ -62,7 +62,7 @@ describe('DigitalMarketplace', () => {
 
     await expect(algod.accountAssetInformation(appAddress, Number(testAssetId)).do()).rejects.toBeDefined();
 
-    const result = await appClient.optIntoAsset(
+    const result = await appClient.optInToAsset(
       {
         mbrTxn: makePaymentTxnWithSuggestedParamsFromObject({
           from: testAccount.addr,
