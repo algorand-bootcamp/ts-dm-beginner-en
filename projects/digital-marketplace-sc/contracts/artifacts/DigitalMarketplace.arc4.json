@@ -4,14 +4,17 @@
   "methods": [
     {
       "name": "createApplication",
+      "desc": "Create the application",
       "args": [
         {
           "name": "assetId",
-          "type": "uint64"
+          "type": "uint64",
+          "desc": "The asset we are selling"
         },
         {
           "name": "unitaryPrice",
-          "type": "uint64"
+          "type": "uint64",
+          "desc": "The price of one unit of the asset"
         }
       ],
       "returns": {
@@ -20,10 +23,12 @@
     },
     {
       "name": "setPrice",
+      "desc": "Setting the new unitary price of the asset",
       "args": [
         {
           "name": "unitaryPrice",
-          "type": "uint64"
+          "type": "uint64",
+          "desc": "The new unitary price"
         }
       ],
       "returns": {
@@ -32,10 +37,12 @@
     },
     {
       "name": "optInToAsset",
+      "desc": "Opt the contract address into the asset",
       "args": [
         {
           "name": "mbrTxn",
-          "type": "pay"
+          "type": "pay",
+          "desc": "The payment transaction that pays for the Minimum Balance Requirement"
         }
       ],
       "returns": {
@@ -44,14 +51,17 @@
     },
     {
       "name": "buy",
+      "desc": "Buy the asset",
       "args": [
         {
           "name": "buyerTxn",
-          "type": "pay"
+          "type": "pay",
+          "desc": "The payment transaction that pays for the asset"
         },
         {
           "name": "quantity",
-          "type": "uint64"
+          "type": "uint64",
+          "desc": "The quantity of the asset to buy"
         }
       ],
       "returns": {
@@ -60,6 +70,7 @@
     },
     {
       "name": "deleteApplication",
+      "desc": "Method to delete the application.It sends the remaining ALGO balance and the remaining asset to the creator",
       "args": [],
       "returns": {
         "type": "void"

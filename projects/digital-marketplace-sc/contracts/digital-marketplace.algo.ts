@@ -1,24 +1,41 @@
 import { Contract } from '@algorandfoundation/tealscript';
 
 export class DigitalMarketplace extends Contract {
+  /** The ID of the asset that we are selling */
   assetId = GlobalStateKey<AssetID>();
 
-  unitaryPrice = GlobalStateKey<number>();
+  /** The cost of buying one unit of the asset */
+  unitaryPrice = GlobalStateKey<uint64>();
 
-  createApplication(assetId: AssetID, unitaryPrice: uint64) {
+  /**
+   * Create the application
+   *
+   * @param assetId The asset we are selling
+   * @param unitaryPrice The price of one unit of the asset
+   */
+  createApplication(assetId: AssetID, unitaryPrice: uint64): void {
     this.assetId.value = assetId;
     this.unitaryPrice.value = unitaryPrice;
   }
 
-  setPrice(unitaryPrice: number) {
-    assert(this.txn.sender === globals.creatorAddress);
+  /**
+   * Setting the new unitary price of the asset
+   *
+   * @param unitaryPrice The new unitary price
+   */
+  setPrice(unitaryPrice: uint64): void {
+    assert(this.txn.sender === this.app.creator);
 
     this.unitaryPrice.value = unitaryPrice;
   }
 
-  optInToAsset(mbrTxn: PayTxn) {
-    assert(this.txn.sender === globals.creatorAddress);
-    assert(!this.app.address.isOptedInToAsset(this.assetId.value));
+  /**
+   * Opt the contract address into the asset
+   *
+   * @param mbrTxn The payment transaction that pays for the Minimum Balance Requirement
+   */
+  optInToAsset(mbrTxn: PayTxn): void {
+    assert(this.txn.sender === this.app.creator);
 
     verifyPayTxn(mbrTxn, {
       receiver: this.app.address,
@@ -27,43 +44,52 @@ export class DigitalMarketplace extends Contract {
 
     sendAssetTransfer({
       xferAsset: this.assetId.value,
-      assetReceiver: this.app.address,
       assetAmount: 0,
+      assetReceiver: this.app.address,
     });
   }
 
-  buy(buyerTxn: PayTxn, quantity: number) {
-    assert(this.unitaryPrice.value !== 0);
+  /**
+   * Buy the asset
+   *
+   * @param buyerTxn The payment transaction that pays for the asset
+   * @param quantity The quantity of the asset to buy
+   */
+  buy(buyerTxn: PayTxn, quantity: uint64): void {
+    assert(this.assetId.value.id !== 0, 'The asset ID is not set');
+    assert(this.unitaryPrice.value !== 0, 'The unitary price is not set');
 
     verifyPayTxn(buyerTxn, {
       sender: this.txn.sender,
       receiver: this.app.address,
       amount: this.unitaryPrice.value * quantity,
-      closeRemainderTo: globals.zeroAddress,
-      rekeyTo: globals.zeroAddress,
     });
 
     sendAssetTransfer({
       xferAsset: this.assetId.value,
-      assetReceiver: this.txn.sender,
       assetAmount: quantity,
+      assetReceiver: this.txn.sender,
     });
   }
 
-  deleteApplication() {
-    assert(this.txn.sender === globals.creatorAddress);
+  /**
+   * Method to delete the application.
+   * It sends the remaining ALGO balance and the remaining asset to the creator
+   */
+  deleteApplication(): void {
+    assert(this.txn.sender === this.app.creator);
 
     sendAssetTransfer({
       xferAsset: this.assetId.value,
-      assetReceiver: globals.creatorAddress,
-      assetAmount: 0,
-      assetCloseTo: globals.creatorAddress,
+      assetReceiver: this.app.creator,
+      assetAmount: this.app.address.assetBalance(this.assetId.value),
+      assetCloseTo: this.app.creator,
     });
 
     sendPayment({
-      receiver: globals.creatorAddress,
-      amount: 0,
-      closeRemainderTo: globals.creatorAddress,
+      receiver: this.app.creator,
+      amount: this.app.address.balance,
+      closeRemainderTo: this.app.creator,
     });
   }
 }
