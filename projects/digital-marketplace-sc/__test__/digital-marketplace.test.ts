@@ -110,7 +110,7 @@ describe('DigitalMarketplace', () => {
     const result = await appClient.buy(
       {
         buyerTxn,
-        quantity: 2,
+        quantity: 2n,
       },
       {
         sender: testAccount,
