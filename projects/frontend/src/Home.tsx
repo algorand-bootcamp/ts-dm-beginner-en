@@ -43,7 +43,7 @@ const Home: React.FC<HomeProps> = () => {
 
   const algodConfig = getAlgodConfigFromViteEnvironment()
   const algorand = AlgorandClient.fromConfig({ algodConfig })
-  algorand.withDefaultSigner(signer)
+  algorand.setDefaultSigner(signer)
 
   const dmClient = new DigitalMarketplaceClient(
     {
