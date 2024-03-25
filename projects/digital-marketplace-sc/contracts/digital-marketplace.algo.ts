@@ -36,6 +36,7 @@ export class DigitalMarketplace extends Contract {
    */
   optInToAsset(mbrTxn: PayTxn): void {
     assert(this.txn.sender === this.app.creator);
+    assert(!this.app.address.isOptedInToAsset(this.assetId.value));
 
     verifyPayTxn(mbrTxn, {
       receiver: this.app.address,
