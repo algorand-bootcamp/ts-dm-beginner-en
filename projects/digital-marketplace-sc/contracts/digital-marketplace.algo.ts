@@ -56,9 +56,6 @@ export class DigitalMarketplace extends Contract {
    * @param quantity The quantity of the asset to buy
    */
   buy(buyerTxn: PayTxn, quantity: uint64): void {
-    assert(this.assetId.value.id !== 0, 'The asset ID is not set');
-    assert(this.unitaryPrice.value !== 0, 'The unitary price is not set');
-
     verifyPayTxn(buyerTxn, {
       sender: this.txn.sender,
       receiver: this.app.address,
