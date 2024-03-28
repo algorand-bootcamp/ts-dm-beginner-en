@@ -21,6 +21,7 @@ const Home: React.FC<HomeProps> = () => {
   const [unitaryPrice, setUnitaryPrice] = useState<bigint>(0n)
   const [quantity, setQuantity] = useState<bigint>(0n)
   const [unitsLeft, setUnitsLeft] = useState<bigint>(0n)
+  const [seller, setSeller] = useState<string | undefined>(undefined)
   const { activeAddress, signer } = useWallet()
 
   useEffect(() => {
@@ -38,6 +39,16 @@ const Home: React.FC<HomeProps> = () => {
         setUnitaryPrice(0n)
         setAssetId(0n)
         setUnitsLeft(0n)
+      })
+
+    algorand.client.algod
+      .getApplicationByID(appId)
+      .do()
+      .then((response) => {
+        setSeller(response.params.creator)
+      })
+      .catch(() => {
+        setSeller(undefined)
       })
   }, [appId])
 
@@ -96,20 +107,27 @@ const Home: React.FC<HomeProps> = () => {
                   onChange={(e) => setUnitaryPrice(BigInt(e.currentTarget.value || '0') * BigInt(10e6))}
                 />
                 <MethodCall
-                  methodFunction={methods.create(algorand, dmClient, activeAddress, unitaryPrice, 100n, 0n, setAppId)}
+                  methodFunction={methods.create(algorand, dmClient, activeAddress, unitaryPrice, 10n, 0n, setAppId)}
                   text="Create Marketplace"
                 />
               </div>
             )}
 
-            {activeAddress && appId !== 0 && (
+            {appId !== 0 && (
               <div>
                 <label className="label">Asset ID</label>
                 <input type="text" className="input input-bordered" value={assetId.toString()} readOnly />
-                <label className="label">Price Per Unit</label>
-                <input type="text" className="input input-bordered" value={(unitaryPrice / BigInt(10e6)).toString()} readOnly />
                 <label className="label">Units Left</label>
                 <input type="text" className="input input-bordered" value={unitsLeft.toString()} readOnly />
+              </div>
+            )}
+
+            <div className="divider" />
+
+            {activeAddress && appId !== 0 && unitsLeft !== 0n && (
+              <div>
+                <label className="label">Price Per Unit</label>
+                <input type="text" className="input input-bordered" value={(unitaryPrice / BigInt(10e6)).toString()} readOnly />
                 <label className="label">Desired Quantity</label>
                 <input
                   type="number"
@@ -123,7 +141,6 @@ const Home: React.FC<HomeProps> = () => {
                     dmClient,
                     activeAddress,
                     algosdk.getApplicationAddress(appId),
-                    signer,
                     quantity,
                     unitaryPrice,
                     setUnitsLeft,
@@ -131,6 +148,16 @@ const Home: React.FC<HomeProps> = () => {
                   text={`Buy ${quantity} unit for ${(unitaryPrice * BigInt(quantity)) / BigInt(10e6)} ALGO`}
                 />
               </div>
+            )}
+
+            {activeAddress !== seller && appId !== 0 && unitsLeft === 0n && (
+              <button className="btn btn-disabled m-2" disabled={true}>
+                SOLD OUT!
+              </button>
+            )}
+
+            {activeAddress === seller && appId !== 0 && unitsLeft === 0n && (
+              <MethodCall methodFunction={methods.deleteApp(dmClient, setAppId)} text="Delete App" />
             )}
           </div>
 

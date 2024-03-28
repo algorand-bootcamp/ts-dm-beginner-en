@@ -40,7 +40,7 @@ export function create(
       assetId,
       sender,
       receiver: createResult.appAddress,
-      amount: 100n,
+      amount: quantity,
     })
 
     setAppId(Number(createResult.appId))
@@ -72,5 +72,12 @@ export function buy(
     const state = await dmClient.getGlobalState()
     const info = await algorand.account.getAssetInformation(appAddress, state.assetId!.asBigInt())
     setUnitsLeft(info.balance)
+  }
+}
+
+export function deleteApp(dmClient: DigitalMarketplaceClient, setAppId: (id: number) => void) {
+  return async () => {
+    await dmClient.delete.deleteApplication({}, { sendParams: { fee: algokit.algos(0.003) } })
+    setAppId(0)
   }
 }
