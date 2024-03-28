@@ -1,5 +1,4 @@
 import * as algokit from '@algorandfoundation/algokit-utils'
-import { type TransactionSigner } from 'algosdk'
 import { DigitalMarketplaceClient } from './contracts/DigitalMarketplaceClient'
 
 /**
@@ -53,7 +52,6 @@ export function buy(
   dmClient: DigitalMarketplaceClient,
   sender: string,
   appAddress: string,
-  signer: TransactionSigner,
   quantity: bigint,
   unitaryPrice: bigint,
   setUnitsLeft: React.Dispatch<React.SetStateAction<bigint>>,
@@ -66,15 +64,10 @@ export function buy(
       extraFee: algokit.algos(0.001),
     })
 
-    await dmClient.buy(
-      {
-        buyerTxn,
-        quantity,
-      },
-      {
-        sender: { addr: sender, signer },
-      },
-    )
+    await dmClient.buy({
+      buyerTxn,
+      quantity,
+    })
 
     const state = await dmClient.getGlobalState()
     const info = await algorand.account.getAssetInformation(appAddress, state.assetId!.asBigInt())
