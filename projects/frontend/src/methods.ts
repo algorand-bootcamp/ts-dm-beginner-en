@@ -11,16 +11,21 @@ export const create =
     dmClient: DigitalMarketplaceClient,
     sender: string,
     unitaryPrice: bigint,
+    quantity: bigint,
+    assetBeingSold: bigint,
     setAppId: (id: number) => void,
   ) =>
   async () => {
-    // In production, the user would supply this asset
-    const assetCreate = await algorand.send.assetCreate({
-      sender,
-      total: 100n,
-    })
+    let assetId = assetBeingSold
 
-    const assetId = BigInt(assetCreate.confirmation.assetIndex!)
+    if (assetId === 0n) {
+      const assetCreate = await algorand.send.assetCreate({
+        sender,
+        total: quantity,
+      })
+
+      assetId = BigInt(assetCreate.confirmation.assetIndex!)
+    }
 
     const createResult = await dmClient.create.createApplication({ assetId, unitaryPrice })
 

@@ -1,14 +1,14 @@
 // src/components/Home.tsx
+import { Config as AlgokitConfig } from '@algorandfoundation/algokit-utils'
+import AlgorandClient from '@algorandfoundation/algokit-utils/types/algorand-client'
 import { useWallet } from '@txnlab/use-wallet'
+import algosdk from 'algosdk'
 import React, { useEffect, useState } from 'react'
 import ConnectWallet from './components/ConnectWallet'
 import MethodCall from './components/MethodCall'
-import * as methods from './methods'
-import { Config as AlgokitConfig } from '@algorandfoundation/algokit-utils'
-import AlgorandClient from '@algorandfoundation/algokit-utils/types/algorand-client'
-import { getAlgodConfigFromViteEnvironment } from './utils/network/getAlgoClientConfigs'
 import { DigitalMarketplaceClient } from './contracts/DigitalMarketplaceClient'
-import algosdk from 'algosdk'
+import * as methods from './methods'
+import { getAlgodConfigFromViteEnvironment } from './utils/network/getAlgoClientConfigs'
 
 interface HomeProps {}
 
@@ -74,6 +74,9 @@ const Home: React.FC<HomeProps> = () => {
               Wallet Connection
             </button>
 
+            <div className="divider" />
+
+            <label className="label">App ID</label>
             <input
               type="number"
               className="input input-bordered m-2"
@@ -93,7 +96,7 @@ const Home: React.FC<HomeProps> = () => {
                   onChange={(e) => setUnitaryPrice(BigInt(e.currentTarget.value || '0') * BigInt(10e6))}
                 />
                 <MethodCall
-                  methodFunction={methods.create(algorand, dmClient, activeAddress, unitaryPrice, setAppId)}
+                  methodFunction={methods.create(algorand, dmClient, activeAddress, unitaryPrice, 100n, 0n, setAppId)}
                   text="Create Marketplace"
                 />
               </div>
