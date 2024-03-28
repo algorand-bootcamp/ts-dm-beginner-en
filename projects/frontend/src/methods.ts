@@ -1,19 +1,17 @@
-import AlgorandClient from '@algorandfoundation/algokit-utils/types/algorand-client'
 import * as algokit from '@algorandfoundation/algokit-utils'
-import { DigitalMarketplaceClient } from './contracts/DigitalMarketplaceClient'
 import { type TransactionSigner } from 'algosdk'
-import type React from 'react'
+import { DigitalMarketplaceClient } from './contracts/DigitalMarketplaceClient'
 
 /**
  * Create the application and opt it into the desired asset
  */
 export const create =
   (
-    algorand: AlgorandClient,
+    algorand: algokit.AlgorandClient,
     dmClient: DigitalMarketplaceClient,
     sender: string,
     unitaryPrice: bigint,
-    setAppId: React.Dispatch<React.SetStateAction<number>>,
+    setAppId: (id: number) => void,
   ) =>
   async () => {
     // In production, the user would supply this asset
@@ -47,7 +45,7 @@ export const create =
 
 export const buy =
   (
-    algorand: AlgorandClient,
+    algorand: algokit.AlgorandClient,
     dmClient: DigitalMarketplaceClient,
     sender: string,
     appAddress: string,
