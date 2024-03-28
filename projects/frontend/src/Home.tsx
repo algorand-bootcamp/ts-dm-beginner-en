@@ -6,7 +6,7 @@ import algosdk from 'algosdk'
 import React, { useEffect, useState } from 'react'
 import ConnectWallet from './components/ConnectWallet'
 import MethodCall from './components/MethodCall'
-import { DigitalMarketplaceClient } from './contracts/DigitalMarketplaceClient'
+import { DigitalMarketplaceClient } from './contracts/DigitalMarketplace'
 import * as methods from './methods'
 import { getAlgodConfigFromViteEnvironment } from './utils/network/getAlgoClientConfigs'
 

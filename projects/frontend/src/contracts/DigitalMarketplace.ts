@@ -12,6 +12,7 @@ import type {
   AppCompilationResult,
   AppReference,
   AppState,
+  AppStorageSchema,
   CoreAppCallArgs,
   RawAppCallArgs,
   TealTemplateParams,
@@ -232,6 +233,13 @@ export type AppClientComposeCallCoreParams = Omit<AppClientCallCoreParams, 'send
 }
 export type AppClientComposeExecuteParams = Pick<SendTransactionParams, 'skipWaiting' | 'maxRoundsToWaitForConfirmation' | 'populateAppCallResources' | 'suppressLog'>
 
+export type IncludeSchema = {
+  /**
+   * Any overrides for the storage schema to request for the created app; by default the schema indicated by the app spec is used.
+   */
+  schema?: Partial<AppStorageSchema>
+}
+
 /**
  * Defines the types of available calls and state of the DigitalMarketplace smart contract.
  */
@@ -299,8 +307,8 @@ export type DigitalMarketplace = {
    */
   state: {
     global: {
-      'assetId'?: IntegerState
-      'unitaryPrice'?: IntegerState
+      assetId?: IntegerState
+      unitaryPrice?: IntegerState
     }
   }
 }
@@ -519,7 +527,7 @@ export class DigitalMarketplaceClient {
    * @param params The arguments for the contract calls and any additional parameters for the call
    * @returns The deployment result
    */
-  public deploy(params: DigitalMarketplaceDeployArgs & AppClientDeployCoreParams = {}): ReturnType<ApplicationClient['deploy']> {
+  public deploy(params: DigitalMarketplaceDeployArgs & AppClientDeployCoreParams & IncludeSchema = {}): ReturnType<ApplicationClient['deploy']> {
     const createArgs = params.createCall?.(DigitalMarketplaceCallFactory.create)
     const deleteArgs = params.deleteCall?.(DigitalMarketplaceCallFactory.delete)
     return this.appClient.deploy({
@@ -543,7 +551,7 @@ export class DigitalMarketplaceClient {
        * @param params Any additional parameters for the call
        * @returns The create result
        */
-      async createApplication(args: MethodArgs<'createApplication(uint64,uint64)void'>, params: AppClientCallCoreParams & AppClientCompilationParams & (OnCompleteNoOp) = {}) {
+      async createApplication(args: MethodArgs<'createApplication(uint64,uint64)void'>, params: AppClientCallCoreParams & AppClientCompilationParams & IncludeSchema & (OnCompleteNoOp) = {}) {
         return $this.mapReturnValue<MethodReturn<'createApplication(uint64,uint64)void'>, AppCreateCallTransactionResult>(await $this.appClient.create(DigitalMarketplaceCallFactory.create.createApplication(args, params)))
       },
     }

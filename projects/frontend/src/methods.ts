@@ -1,5 +1,5 @@
 import * as algokit from '@algorandfoundation/algokit-utils'
-import { DigitalMarketplaceClient } from './contracts/DigitalMarketplaceClient'
+import { DigitalMarketplaceClient } from './contracts/DigitalMarketplace'
 
 /**
  * Create the application and opt it into the desired asset
