@@ -1,21 +1,12 @@
-# ts-dm-beginner-en
+# Typescript Beginner Bootcamp
 
-Welcome to your new AlgoKit project!
+Welcome to the Typescript Bootcamp - Beginner Level
 
-This is your workspace root. A `workspace` in AlgoKit is an orchestrated collection of standalone projects (backends, smart contracts, frontend apps and etc).
+With this content you will learn how to create your first completely functional dapp using Algorand Typescript: Building your smart contract, testing it, building the client and the frontend using React
 
-By default, `projects_root_path` parameter is set to `projects`. Which instructs AlgoKit CLI to create a new directory under `projects` directory when new project is instantiated via `algokit init` at the root of the workspace.
+## Live Recordings
 
-## Getting Started
-
-To get started refer to `README.md` files in respective sub-projects in the `projects` directory.
-
-To learn more about algokit, visit [documentation](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/algokit.md).
-
-### GitHub Codespaces
-
-If executing this repository in GitHub Codespaces, the container will automatically cleanup templatized content and pre-install `algokit` for you. To get started execute:
-
-- `algokit init` - to invoke interactive wizard to guide you through the process of creating a new AlgoKit project
-
-Powered by [Copier templates](https://copier.readthedocs.io/en/stable/).
+- [Session 1: Digital Marketplace Smart Contract](https://drive.google.com/file/d/1NxJEKBAAzCCu_V8pXhoOOldZJsQcq-0P/view?usp=drive_link)
+- [Session 2: Smart Contract Testing](https://drive.google.com/file/d/1rrE9WOGNbU99wNXGqf2ZnPQ5BhIf-O7X/view?usp=drive_link)
+- [Session 3: Building methods for the client](https://drive.google.com/file/d/1MFjDcV_qviuMhRf2tl809JlGIN722D2C/view?usp=drive_link)
+- [Session 4: React frontend](https://drive.google.com/file/d/16_NB0e-X0aWhaWXqMFrlW2NaeGrjgl1B/view?usp=drive_link)
